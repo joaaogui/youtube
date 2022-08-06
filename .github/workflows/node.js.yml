@@ -14,7 +14,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
       - name: Tailwind
-        run: npx tailwindcss -i ./src/assets/main.css -o ./dist/output.css
+        run: npx tailwindcss -i ./src/index.css -o ./dist/output.css
       - name: Build
         run: npm run build
       - name: Archive Production Artifact
