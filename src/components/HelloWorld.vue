@@ -1,83 +1,52 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
-import axios from "axios";
-import _, { map } from "underscore";
-import * as dayjs from "dayjs";
-
-const data: any = ref([]);
-const labels: any = ref([]);
-const videos: any = ref([]);
-const prop: any = ref("");
-const lists: any = ref({});
-
-const daysProp = computed(() => {
-  return prop.value === "days";
-});
+// mucao UCGwXFpbp5uzecUbi3m7aRsw
 // pililiu UCInnYQKgaud_jbIWV71YF-w
 // andre UC50nGMsjEVjeiZAabzcPZ0g
-onMounted(async () => {
-  const channel = await axios.get(
-    "https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=UC50nGMsjEVjeiZAabzcPZ0g&key=AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0"
-  );
-  const playlistId =
-    channel.data.items[0].contentDetails.relatedPlaylists.uploads;
 
-  const videoResults = await getPlaylistItems(playlistId);
+import { ref, onMounted, computed } from "vue";
+import axios from "axios";
+import * as dayjs from "dayjs";
 
-  for (const item of videoResults) {
-    const views = await getVideoViews(item.contentDetails.videoId);
-    const days = getDaysToToday(item.contentDetails.videoPublishedAt);
-    const score = Number((Number(views) / days).toFixed(2));
-    await videos.value.push({
-      videoId: item.contentDetails.videoId,
-      title: item.snippet.title,
-      days,
-      views,
-      score,
-    });
-  }
-  prop.value = "score";
-  lists.value.byScore = { data: [], labels: [] };
-  const copyScore = [].concat(videos.value.sort(sortVideos));
-  lists.value.byScore.title = "By Score";
-  lists.value.byScore.prop = prop.value;
-  lists.value.byScore.data = copyScore;
-  lists.value.byScore.data.length = 10;
-
-  prop.value = "days";
-  lists.value.byDays = { data: [], labels: [] };
-  const copyDays = [].concat(videos.value.sort(sortVideos));
-  lists.value.byDays.title = "By Days";
-  lists.value.byDays.prop = prop.value;
-  lists.value.byDays.data = copyDays;
-  lists.value.byDays.data.length = 10;
-
-  prop.value = "views";
-  lists.value.byViews = { data: [], labels: [] };
-  const copyViews = [].concat(videos.value.sort(sortVideos));
-  lists.value.byViews.title = "By Views";
-  lists.value.byViews.prop = prop.value;
-  lists.value.byViews.data = copyViews;
-  lists.value.byViews.data.length = 10;
-
-  console.log(lists.value);
-  // data.value = videos.value.map((video: any) =>
-  //   Number(video.score).toLocaleString("pt-BR")
-  // );
-  // videos.value.length = 10;
+import type { Header } from "vue3-easy-data-table";
+// data
+const videos: any = ref({});
+const prop: any = ref("");
+const lists: any = ref({
+  byScore: { title: "Pontuação", data: [], labels: [] },
+  byDays: { title: "Mais recente", data: [], labels: [] },
+  byViews: { title: "Visualizações", data: [], labels: [] },
 });
-let videoResults: any = [];
+const apiUrl = "https://www.googleapis.com/youtube/v3";
+const urlKey = "AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0";
+const headers: Header[] = [
+  { text: "Título", value: "title", sortable: true },
+  { text: "Idade", value: "days", sortable: true },
+  { text: "Ranking idade", value: "daysRanking", sortable: true },
+  { text: "Pontuação", value: "score", sortable: true },
+  { text: "Ranking Pontuação", value: "scoreRanking", sortable: true },
+  { text: "Visualizações", value: "views", sortable: true },
+  { text: "Ranking Visualizações", value: "viewsRanking", sortable: true },
+  { text: "Soma dos rankings", value: "sum", sortable: true },
+];
+const loaded: any = ref(false);
+// computed
+const daysProp = computed(() => {
+  return prop.value === "days" || prop.value === "sum";
+});
 
+let allPlaylistVideos: any = [];
+
+// methods
 async function getPlaylistItems(playlistId: string, pageToken = "") {
-  const playlistItems = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${playlistId}&key=AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0`;
-  const result = await axios.get(`${playlistItems}&pageToken=${pageToken}`);
-  pageToken = result.data.nextPageToken;
-  videoResults.push(...result.data.items);
+  const getPlaylistVideosUrl = `${apiUrl}/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${playlistId}&key=${urlKey}&pageToken=${pageToken}`;
+  const playlistVideos = await axios.get(`${getPlaylistVideosUrl}`);
+  pageToken = playlistVideos.data.nextPageToken;
+  allPlaylistVideos.push(...playlistVideos.data.items);
 
   if (pageToken) {
     await getPlaylistItems(playlistId, pageToken);
   }
-  return videoResults;
+  return allPlaylistVideos;
 }
 
 function sortVideos(a: any, b: any) {
@@ -96,67 +65,82 @@ function getDaysToToday(videoDate: any) {
 }
 
 async function getVideoViews(videoId: any) {
-  const result = await axios.get(
-    `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0`
-  );
+  const videoViewsUrl = `${apiUrl}/videos?part=statistics&id=${videoId}&key=${urlKey}`;
+  const result = await axios.get(videoViewsUrl);
   return result.data.items[0].statistics.viewCount;
 }
+
+async function getChannelVideos(channelId: string) {
+  const getChannelUrl = `${apiUrl}/channels?part=contentDetails&id=${channelId}&key=${urlKey}`;
+
+  const channel = await axios.get(getChannelUrl);
+
+  const allUploadsPlaylistId =
+    channel.data.items[0].contentDetails.relatedPlaylists.uploads;
+
+  return getPlaylistItems(allUploadsPlaylistId);
+}
+
+// lifecycle
+onMounted(async () => {
+  const channelId = "UC50nGMsjEVjeiZAabzcPZ0g";
+  const channelVideos = await getChannelVideos(channelId);
+  let temp = {};
+  for (const video of channelVideos) {
+    const videoId = video.contentDetails.videoId;
+    const views = await getVideoViews(video.contentDetails.videoId);
+    const days = getDaysToToday(video.contentDetails.videoPublishedAt);
+    const score = Number((Number(views) / days).toFixed(2));
+    const title = video.snippet.title;
+    temp[videoId] = {
+      videoId,
+      title,
+      days,
+      views,
+      score,
+    };
+  }
+  const videoArray: [] = Object.keys(temp).map(function (key) {
+    return temp[key];
+  });
+
+  prop.value = "score";
+  const copyScore = [].concat(videoArray.sort(sortVideos));
+  copyScore.forEach((video, index) => {
+    temp[video.videoId].scoreRanking = index;
+  });
+  lists.value.byScore.prop = prop.value;
+  lists.value.byScore.data = copyScore;
+
+  prop.value = "days";
+  const copyDays = [].concat(videoArray.sort(sortVideos));
+  copyDays.forEach((video, index) => {
+    temp[video.videoId].daysRanking = index;
+  });
+  lists.value.byDays.prop = prop.value;
+  lists.value.byDays.data = copyDays;
+
+  prop.value = "views";
+  const copyViews = [].concat(videoArray.sort(sortVideos));
+  copyViews.forEach((video, index) => {
+    temp[video.videoId].viewsRanking = index;
+  });
+  lists.value.byViews.prop = prop.value;
+  lists.value.byViews.data = copyViews;
+
+  for (const video of videoArray) {
+    const sum = video.scoreRanking + video.daysRanking + video.viewsRanking;
+    temp[video.videoId].sum = sum;
+    prop.value = "sum";
+    videoArray.sort(sortVideos);
+  }
+  videos.value = videoArray;
+  loaded.value = true;
+});
 </script>
 
 <template>
-  <div v-if="videos" :class="$style['greetings']">
-    <div v-for="(list, index) of lists">
-      {{ list.title }}
-      <div v-for="(video, index) of list.data" class="item">
-        <div class="title">{{ video.title }}</div>
-        <div class="score">
-          {{
-            Number(video[list.prop]).toLocaleString("pt-BR", {
-              minimumFractionDigits: list.prop === "score" ? 2 : 0,
-            })
-          }}
-        </div>
-      </div>
-    </div>
-    <!-- <Bar
-      v-if="labels && labels.length"
-      :chart-data="{ labels: labels, datasets: [{ data }] }"
-      chart-id="bar-chart"
-      dataset-id-key="label"
-      :width="1000"
-      :height="1000"
-    /> -->
+  <div v-if="loaded" class="flex flex-col w-full p-4">
+    <EasyDataTable :headers="headers" :items="videos" rows-per-page="100" />
   </div>
 </template>
-
-<style lang="scss" module>
-.greetings {
-  @apply bg-gray-900 text-blue-500;
-
-  width: 100%;
-  display: flex;
-}
-.item {
-  display: flex;
-  text-align: left;
-  width: 100%;
-}
-.title {
-  @apply bg-gray-900 text-blue-500;
-
-  display: flex;
-
-  padding: 8px;
-  width: 60%;
-  align-items: center;
-
-  border-radius: 12px;
-  margin-bottom: 4px;
-  margin-right: 10px;
-}
-
-.score {
-  font-size: 20px;
-  font-weight: bold;
-}
-</style>
