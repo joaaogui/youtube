@@ -1,16 +1,36 @@
-name: Build and Deploy Vue Application to Github Pages
+name: Build and Deploy Package
+
 on:
+  workflow_dispatch:
   push:
-    branch: -main
+    branches: ["master"]
+  release:
+    types:
+      - created
+
+env:
+  NODE_VERSION: 14
+
 jobs:
-  build_deploy_vue:
+  build:
+    name: "🚀Build and Publish"
     runs-on: ubuntu-latest
-    name: Build and Deploy Vue
     steps:
       - uses: actions/checkout@v2
-      - id: Build-Deploy-Vue
-        uses: thefrustrateddev/vue-deploy-github-pages@v1.0.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v1
         with:
-          username: "joaaogui"
-          reponame: "youtube"
-          token: ${{ secrets.GITHUB_TOKEN }} # no need to change this line this is used to create the branch in your application repository
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: borales/actions-yarn@v3.0.0
+      - run: sudo yarn install --frozen-lockfile
+      - run: sudo yarn build
+      - name: Publish to GitHub Packages
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://npm.pkg.github.com/
+          scope: "@octadesk-tech"
+      - uses: borales/actions-yarn@v3.0.0
+      - run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
