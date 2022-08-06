@@ -1,24 +1,16 @@
-name: Build
+name: Build and Deploy Vue Application to Github Pages
 on:
   push:
-    branches:
-      - master
-
+    branch: -main
 jobs:
-  build:
-    name: Build
+  build_deploy_vue:
     runs-on: ubuntu-latest
+    name: Build and Deploy Vue
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@master
-      - name: Install Dependencies
-        run: npm install
-      - name: Tailwind
-        run: npx tailwindcss -i ./src/index.css -o ./dist/output.css
-      - name: Build
-        run: npm run build
-      - name: Archive Production Artifact
-        uses: actions/upload-artifact@master
+      - uses: actions/checkout@v2
+      - id: Build-Deploy-Vue
+        uses: thefrustrateddev/vue-deploy-github-pages@v1.0.0
         with:
-          name: dist
-          path: dist
+          username: "joaaogui"
+          reponame: "youtube"
+          token: ${{ secrets.GITHUB_TOKEN }} # no need to change this line this is used to create the branch in your application repository
