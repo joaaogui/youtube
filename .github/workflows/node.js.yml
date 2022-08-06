@@ -22,9 +22,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: borales/actions-yarn@v3.0.0
-      - run: yarn install --frozen-lockfile
-      - run: yarn tailwind
-      - run: yarn build
+      - run: sudo yarn install
+      - run: sudo yarn tailwind
+      - run: sudo yarn build
       - name: Publish to GitHub Packages
         uses: actions/setup-node@v1
         with:
