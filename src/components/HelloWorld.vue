@@ -141,6 +141,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="loaded" class="flex flex-col w-full p-4">
+    test
     <EasyDataTable :headers="headers" :items="videos" rows-per-page="100" />
   </div>
 </template>
