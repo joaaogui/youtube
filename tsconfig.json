@@ -4,8 +4,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    },
+      "@/*": [
+       "./*"
+      ]
+     },
     "types": [
       "src/*",
       "node"

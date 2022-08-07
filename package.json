@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "tailwind": "npx tailwindcss -i ./src/index.css -o ./dist/output.css",
+    "tailwind": "npx tailwindcss -i ./src/index.css -o ./output.css",
     "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
     "build-only": "vite build",

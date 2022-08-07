@@ -5,7 +5,7 @@
 
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import * as dayjs from "dayjs";
+import dayjs from "dayjs";
 import type { Header } from "vue3-easy-data-table";
 
 // data
@@ -34,7 +34,7 @@ const daysProp = computed(() => {
   return prop.value === "days" || prop.value === "sum";
 });
 
-let allPlaylistVideos: any = [];
+const allPlaylistVideos: any = [];
 
 // methods
 async function getPlaylistItems(playlistId: string, pageToken = "") {
