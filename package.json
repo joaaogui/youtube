@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "tailwind": "npx tailwindcss -i ./src/index.css -o ./dist/output.css",
-    "build": "tailwind && run-p type-check build-only",
+    "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
