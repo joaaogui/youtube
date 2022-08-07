@@ -29,6 +29,8 @@ const headers: Header[] = [
   { text: "Soma dos rankings", value: "sum", sortable: true },
 ];
 const loaded: any = ref(false);
+const channelName: any = ref("");
+const channelId: any = ref(null);
 // computed
 const daysProp = computed(() => {
   return prop.value === "days" || prop.value === "sum";
@@ -80,11 +82,17 @@ async function getChannelVideos(channelId: string) {
 
   return getPlaylistItems(allUploadsPlaylistId);
 }
+async function searchChannel(name: string) {
+  const searchChannelUrl = `${apiUrl}/search?part=snippet&q=${name}&type=channel&key=${urlKey}`;
+  const result = await axios.get(searchChannelUrl);
+  const channel = result.data.items[0];
+  channelId.value = channel.snippet.channelId;
+  await doEverything();
+  return result.data.items[0];
+}
 
-// lifecycle
-onMounted(async () => {
-  const channelId = "UC50nGMsjEVjeiZAabzcPZ0g";
-  const channelVideos = await getChannelVideos(channelId);
+async function doEverything() {
+  const channelVideos = await getChannelVideos(channelId.value);
   let temp = {};
   for (const video of channelVideos) {
     const videoId = video.contentDetails.videoId;
@@ -136,11 +144,21 @@ onMounted(async () => {
   }
   videos.value = videoArray;
   loaded.value = true;
-});
+}
 </script>
 
 <template>
-  <div v-if="loaded" class="flex flex-col w-full p-4">
-    <EasyDataTable :headers="headers" :items="videos" rows-per-page="100" />
+  <div class="flex flex-col w-full p-4">
+    <input
+      class="border-4 border-gray-500 bg-gray-400"
+      v-model="channelName"
+      @keypress.enter="searchChannel(channelName)"
+    />
+    <EasyDataTable
+      v-if="loaded"
+      :headers="headers"
+      :items="videos"
+      rows-per-page="100"
+    />
   </div>
 </template>
