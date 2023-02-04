@@ -1,24 +1,27 @@
-<script setup lang="ts">
+<script setup>
 // mucao UCGwXFpbp5uzecUbi3m7aRsw
 // pililiu UCInnYQKgaud_jbIWV71YF-w
 // andre UC50nGMsjEVjeiZAabzcPZ0g
 
-import { ref, onMounted, computed } from "vue";
+import { ref, computed } from "vue";
 import axios from "axios";
 import dayjs from "dayjs";
-import type { Header } from "vue3-easy-data-table";
 
 // data
-const videos: any = ref({});
-const prop: any = ref("");
-const lists: any = ref({
+const videos = ref({});
+const prop = ref("");
+const lists = ref({
   byScore: { title: "Pontuação", data: [], labels: [] },
   byDays: { title: "Mais recente", data: [], labels: [] },
   byViews: { title: "Visualizações", data: [], labels: [] },
 });
+const loaded = ref(false);
+const channelName = ref("");
+const channelInfo = ref(null);
+
 const apiUrl = "https://www.googleapis.com/youtube/v3";
 const urlKey = "AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0";
-const headers: Header[] = [
+const headers = [
   { text: "Título", value: "title", sortable: true },
   { text: "Idade", value: "days", sortable: true },
   { text: "Ranking idade", value: "daysRanking", sortable: true },
@@ -28,18 +31,17 @@ const headers: Header[] = [
   { text: "Ranking Visualizações", value: "viewsRanking", sortable: true },
   { text: "Soma dos rankings", value: "sum", sortable: true },
 ];
-const loaded: any = ref(false);
-const channelName: any = ref("");
-const channelId: any = ref(null);
+const allPlaylistVideos = [];
+const videoPrefix = "https://www.youtube.com/watch?v=";
+const channelPrefix = "https://www.youtube.com/channel/";
+
 // computed
 const daysProp = computed(() => {
   return prop.value === "days" || prop.value === "sum";
 });
 
-const allPlaylistVideos: any = [];
-
 // methods
-async function getPlaylistItems(playlistId: string, pageToken = "") {
+async function getPlaylistItems(playlistId, pageToken = "") {
   const getPlaylistVideosUrl = `${apiUrl}/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${playlistId}&key=${urlKey}&pageToken=${pageToken}`;
   const playlistVideos = await axios.get(`${getPlaylistVideosUrl}`);
   pageToken = playlistVideos.data.nextPageToken;
@@ -51,7 +53,7 @@ async function getPlaylistItems(playlistId: string, pageToken = "") {
   return allPlaylistVideos;
 }
 
-function sortVideos(a: any, b: any) {
+function sortVideos(a, b) {
   if (Number(a[prop.value]) < Number(b[prop.value])) {
     return daysProp.value ? -1 : 1;
   }
@@ -61,20 +63,23 @@ function sortVideos(a: any, b: any) {
   return 0;
 }
 
-function getDaysToToday(videoDate: any) {
+function getDaysToToday(videoDate) {
   const today = dayjs();
   return today.diff(videoDate, "day");
 }
 
-async function getVideoViews(videoId: any) {
+async function getVideo(videoId) {
   const videoViewsUrl = `${apiUrl}/videos?part=statistics&id=${videoId}&key=${urlKey}`;
-  const result = await axios.get(videoViewsUrl);
+  return await axios.get(videoViewsUrl);
+}
+
+async function getVideoViews(videoId) {
+  const result = await getVideo(videoId);
   return result.data.items[0].statistics.viewCount;
 }
 
-async function getChannelVideos(channelId: string) {
+async function getChannelVideos(channelId) {
   const getChannelUrl = `${apiUrl}/channels?part=contentDetails&id=${channelId}&key=${urlKey}`;
-
   const channel = await axios.get(getChannelUrl);
 
   const allUploadsPlaylistId =
@@ -82,33 +87,28 @@ async function getChannelVideos(channelId: string) {
 
   return getPlaylistItems(allUploadsPlaylistId);
 }
-async function searchChannel(name: string) {
-  const searchChannelUrl = `${apiUrl}/search?part=snippet&q=${name}&type=channel&key=${urlKey}`;
-  const result = await axios.get(searchChannelUrl);
-  const channel = result.data.items[0];
-  channelId.value = channel.snippet.channelId;
-  await doEverything();
-  return result.data.items[0];
-}
 
 async function doEverything() {
-  const channelVideos = await getChannelVideos(channelId.value);
-  let temp = {};
+  const channelVideos = await getChannelVideos(channelInfo.value.channelId);
+  const temp = {};
   for (const video of channelVideos) {
-    const videoId = video.contentDetails.videoId;
-    const views = await getVideoViews(video.contentDetails.videoId);
-    const days = getDaysToToday(video.contentDetails.videoPublishedAt);
+    const videoContent = video.contentDetails;
+    const videoId = videoContent.videoId;
+    const views = await getVideoViews(videoContent.videoId);
+    const days = getDaysToToday(videoContent.videoPublishedAt);
     const score = Number((Number(views) / days).toFixed(2));
     const title = video.snippet.title;
+    const url = videoPrefix + videoContent.videoId;
     temp[videoId] = {
       videoId,
       title,
       days,
       views,
       score,
+      url,
     };
   }
-  const videoArray: [] = Object.keys(temp).map(function (key) {
+  const videoArray = Object.keys(temp).map(function (key) {
     return temp[key];
   });
 
@@ -124,6 +124,7 @@ async function doEverything() {
   const copyDays = [].concat(videoArray.sort(sortVideos));
   copyDays.forEach((video, index) => {
     temp[video.videoId].daysRanking = index;
+    ``;
   });
   lists.value.byDays.prop = prop.value;
   lists.value.byDays.data = copyDays;
@@ -145,6 +146,15 @@ async function doEverything() {
   videos.value = videoArray;
   loaded.value = true;
 }
+
+async function searchChannel(name) {
+  const searchChannelUrl = `${apiUrl}/search?part=snippet&q=${name}&type=channel&key=${urlKey}`;
+  const result = await axios.get(searchChannelUrl);
+  const channel = result.data.items[0];
+  channelInfo.value = channel.snippet;
+  await doEverything();
+  return result.data.items[0];
+}
 </script>
 
 <template>
@@ -154,11 +164,20 @@ async function doEverything() {
       v-model="channelName"
       @keypress.enter="searchChannel(channelName)"
     />
+    <a v-if="channelInfo" :href="`${channelPrefix}${channelInfo.channelId}`">
+      {{ channelInfo.channelTitle }}
+      <img :src="channelInfo.thumbnails.medium.url" />
+    </a>
+
     <EasyDataTable
       v-if="loaded"
       :headers="headers"
       :items="videos"
       rows-per-page="100"
-    />
+    >
+      <template #item-title="{ url, title }"
+        ><a :href="url">{{ url }}</a></template
+      >
+    </EasyDataTable>
   </div>
 </template>
