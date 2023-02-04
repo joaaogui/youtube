@@ -8,28 +8,20 @@ import axios from "axios";
 import dayjs from "dayjs";
 
 // data
-const videos = ref({});
+const videos = ref([{}]);
 const prop = ref("");
-const lists = ref({
-  byScore: { title: "Pontuação", data: [], labels: [] },
-  byDays: { title: "Mais recente", data: [], labels: [] },
-  byViews: { title: "Visualizações", data: [], labels: [] },
-});
 const loaded = ref(false);
 const channelName = ref("");
 const channelInfo = ref(null);
+const inputSearched = ref(null);
 
 const apiUrl = "https://www.googleapis.com/youtube/v3";
 const urlKey = "AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0";
 const headers = [
   { text: "Título", value: "title", sortable: true },
-  { text: "Idade", value: "days", sortable: true },
-  { text: "Ranking idade", value: "daysRanking", sortable: true },
+  { text: "Idade (dias)", value: "days", sortable: true },
   { text: "Pontuação", value: "score", sortable: true },
-  { text: "Ranking Pontuação", value: "scoreRanking", sortable: true },
   { text: "Visualizações", value: "views", sortable: true },
-  { text: "Ranking Visualizações", value: "viewsRanking", sortable: true },
-  { text: "Soma dos rankings", value: "sum", sortable: true },
 ];
 const allPlaylistVideos = [];
 const videoPrefix = "https://www.youtube.com/watch?v=";
@@ -75,7 +67,7 @@ async function getVideo(videoId) {
 
 async function getVideoViews(videoId) {
   const result = await getVideo(videoId);
-  return result.data.items[0].statistics.viewCount;
+  return Number(result.data.items[0].statistics.viewCount);
 }
 
 async function getChannelVideos(channelId) {
@@ -96,7 +88,7 @@ async function doEverything() {
     const videoId = videoContent.videoId;
     const views = await getVideoViews(videoContent.videoId);
     const days = getDaysToToday(videoContent.videoPublishedAt);
-    const score = Number((Number(views) / days).toFixed(2));
+    const score = Number((views / days).toFixed(2));
     const title = video.snippet.title;
     const url = videoPrefix + videoContent.videoId;
     temp[videoId] = {
@@ -108,46 +100,17 @@ async function doEverything() {
       url,
     };
   }
+
   const videoArray = Object.keys(temp).map(function (key) {
     return temp[key];
   });
 
-  prop.value = "score";
-  const copyScore = [].concat(videoArray.sort(sortVideos));
-  copyScore.forEach((video, index) => {
-    temp[video.videoId].scoreRanking = index;
-  });
-  lists.value.byScore.prop = prop.value;
-  lists.value.byScore.data = copyScore;
-
-  prop.value = "days";
-  const copyDays = [].concat(videoArray.sort(sortVideos));
-  copyDays.forEach((video, index) => {
-    temp[video.videoId].daysRanking = index;
-    ``;
-  });
-  lists.value.byDays.prop = prop.value;
-  lists.value.byDays.data = copyDays;
-
-  prop.value = "views";
-  const copyViews = [].concat(videoArray.sort(sortVideos));
-  copyViews.forEach((video, index) => {
-    temp[video.videoId].viewsRanking = index;
-  });
-  lists.value.byViews.prop = prop.value;
-  lists.value.byViews.data = copyViews;
-
-  for (const video of videoArray) {
-    const sum = video.scoreRanking + video.daysRanking + video.viewsRanking;
-    temp[video.videoId].sum = sum;
-    prop.value = "sum";
-    videoArray.sort(sortVideos);
-  }
   videos.value = videoArray;
-  loaded.value = true;
 }
 
 async function searchChannel(name) {
+  videos.value = [];
+  inputSearched.value = name;
   const searchChannelUrl = `${apiUrl}/search?part=snippet&q=${name}&type=channel&key=${urlKey}`;
   const result = await axios.get(searchChannelUrl);
   const channel = result.data.items[0];
@@ -168,15 +131,24 @@ async function searchChannel(name) {
       {{ channelInfo.channelTitle }}
       <img :src="channelInfo.thumbnails.medium.url" />
     </a>
-
     <EasyDataTable
-      v-if="loaded"
       :headers="headers"
       :items="videos"
       rows-per-page="100"
+      :loading="inputSearched"
     >
       <template #item-title="{ url, title }"
-        ><a :href="url">{{ url }}</a></template
+        ><a :href="url">{{ title }}</a></template
+      >
+      <template #item-score="{ score }"
+        ><span v-if="score">
+          {{ parseInt(score).toLocaleString("pt-BR") }}</span
+        ></template
+      >
+      <template #item-views="{ views }"
+        ><span v-if="views">
+          {{ views.toLocaleString("pt-BR") }}</span
+        ></template
       >
     </EasyDataTable>
   </div>
