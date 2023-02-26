@@ -16,7 +16,7 @@ const channelName = ref("");
 const channelInfo = ref(null);
 const inputSearched = ref(null);
 
-const apiUrl = "https://www.googleapis.com/youtube/v3";
+const apiUrl = "https://www.gdoogleapis.com/youtube/v3";
 const urlKey = "AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0";
 const headers = [
   { text: "Título", value: "title", sortable: true },
