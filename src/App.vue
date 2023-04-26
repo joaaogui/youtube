@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import HelloWorld from "./components/HelloWorld.vue";
+import Search from "./views/Search.vue";
 </script>
 
 <template>
-  <div class="p-2">
-    <HelloWorld />
+  <div class="app">
+    <Search />
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.app {
+  @apply h-screen w-screen ;
+}
+</style>

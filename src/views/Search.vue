@@ -17,7 +17,7 @@ const channelInfo = ref(null);
 const inputSearched = ref(null);
 
 const apiUrl = "https://www.googleapis.com/youtube/v3";
-const urlKey = "AIzaSyACUShvB-Weq0VkbJ6Yc-ah4NMaoo54rs0";
+const urlKey = "AIzaSyBy5PsZmq3zn2jSdnrn1bGT9lsF-6NwVx4";
 const headers = [
   { text: "Título", value: "title", sortable: true },
   { text: "Idade (dias)", value: "days", sortable: true },
@@ -30,8 +30,10 @@ const headers = [
 const videoPrefix = "https://www.youtube.com/watch?v=";
 const channelPrefix = "https://www.youtube.com/channel/";
 let allPlaylistVideos = [];
+const logoSrc = computed(() => {
+  return !!videos.value.length ? "img/youtube_short.svg" : "img/youtube.svg";
+});
 
-// computed
 // methods
 async function getPlaylistItems(playlistId, pageToken = "") {
   const getPlaylistVideosUrl = `${apiUrl}/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${playlistId}&key=${urlKey}&pageToken=${pageToken}`;
@@ -79,16 +81,14 @@ async function getChannelVideos(channelId) {
 }
 
 function getScore(views, days, comments, likes) {
-console.log((views * 4), (comments * 2), (likes * 3))
-console.log(((days + 1) * 5))
-console.log('final: ', ((views * 4) + (comments * 2) + (likes * 3)) - ((days + 1) * 5))
-return Number(((views * 4)/((days + 1) * 5)) + (comments * 2) + (likes * 3))
+  return Number((views * 4) / ((days + 1) * 5) + comments * 2 + likes * 3);
 }
 
 async function setVideoArray() {
   const channelId = channelInfo.value.channelId;
   const channelVideos = await getChannelVideos(channelInfo.value.channelId);
   for (const video of channelVideos) {
+    console.log(video);
     const videoContent = video.contentDetails;
     const videoId = videoContent.videoId;
     const views = await getVideoInfo(videoContent.videoId, "viewCount");
@@ -100,6 +100,7 @@ async function setVideoArray() {
     const title = video.snippet.title;
     const url = videoPrefix + videoContent.videoId;
     const thumbnail = video.snippet.thumbnails.default.url;
+    const description = video.snippet.description;
     videos.value.push({
       videoId,
       title,
@@ -111,6 +112,7 @@ async function setVideoArray() {
       score,
       url,
       thumbnail,
+      description,
     });
   }
   localStorage.setItem(channelId, JSON.stringify(videos.value));
@@ -128,7 +130,7 @@ async function searchChannel(name) {
   videos.value = [];
   allPlaylistVideos = [];
   inputSearched.value = name;
-  await setChannelInfo(`UC50nGMsjEVjeiZAabzcPZ0g`);
+  await setChannelInfo(`UC1xXdgoZjZpD-Uql3Dl5yfQ`);
   const storage = localStorage.getItem(channelInfo.value.channelId);
   if (storage) videos.value = JSON.parse(storage);
   else await setVideoArray();
@@ -137,37 +139,90 @@ async function searchChannel(name) {
 </script>
 
 <template>
-  <div class="flex flex-col w-full p-4">
-    <input
-      class="border-4 border-gray-500 bg-gray-400"
-      v-model="channelName"
-      @keypress.enter="searchChannel(channelName)"
-    />
-    <a v-if="channelInfo" :href="`${channelPrefix}${channelInfo.channelId}`">
-      {{ channelInfo.channelTitle }}
-      <img :src="channelInfo.thumbnails.medium.url" />
-    </a>
-    <EasyDataTable
-      :headers="headers"
-      :items="videos"
-      :rows-per-page="100"
-      :loading="loading"
-    >
-      <template #item-title="{ url, title, thumbnail }">
-        <!--        <img :src="thumbnail" />-->
-
-        <a :href="url" target="_blank">{{ title }}</a></template
+  <div class="search" :class="{ activeSearch: !!videos.length }">
+    <span class="search__header">
+      <img class="search__header__logo" :src="logoSrc" />
+      <input
+        class="search__header__input"
+        placeholder="Search for a youtube channel"
+        v-model="channelName"
+        @keypress.enter="searchChannel(channelName)"
+      />
+    </span>
+    <span class="search__content">
+      <a
+        class="search__content__title"
+        v-if="channelInfo"
+        :href="`${channelPrefix}${channelInfo.channelId}`"
       >
-      <template #item-score="{ score }"
-        ><span v-if="score">
-          {{ parseInt(score).toLocaleString("pt-BR") }}</span
-        ></template
+        <img
+          class="search__content__title__img"
+          :src="channelInfo.thumbnails.default.url"
+        />
+        <span class="search__content__title__info">{{
+          channelInfo.channelTitle
+        }}</span>
+      </a>
+      <EasyDataTable
+        :headers="headers"
+        :items="videos"
+        :rows-per-page="100"
+        :loading="loading"
+        v-if="videos.length"
       >
-      <template #item-views="{ views }"
-        ><span v-if="views">
-          {{ views.toLocaleString("pt-BR") }}</span
-        ></template
-      >
-    </EasyDataTable>
+        <template #item-title="{ url, title, thumbnail }">
+          <span class="flex">
+            <img :src="thumbnail" />
+            <a :href="url" target="_blank">{{ title }}</a>
+          </span></template
+        >
+        <template #item-score="{ score }"
+          ><span v-if="score">
+            {{ parseInt(score).toLocaleString("pt-BR") }}</span
+          ></template
+        >
+        <template #item-views="{ views }"
+          ><span v-if="views">
+            {{ views.toLocaleString("pt-BR") }}</span
+          ></template
+        >
+      </EasyDataTable>
+    </span>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.search {
+  @apply flex h-full w-full flex-col items-center justify-start p-4;
+  &__header {
+    @apply flex w-full flex-col;
+    &__logo {
+      @apply mb-6 w-full max-w-md justify-center;
+    }
+    &__input {
+      @apply h-10 w-full max-w-md rounded-lg border-2 border-gray-500 bg-gray-200 px-2;
+    }
+  }
+  &__content {
+    @apply mb-6 mt-2;
+    &__title {
+      @apply flex;
+      &__img {
+        @apply mr-2 rounded-lg;
+      }
+    }
+  }
+}
+.activeSearch {
+  @apply w-full;
+  & .search__header {
+    @apply w-full flex-row items-center gap-x-2;
+    &__logo {
+      @apply m-0 w-12;
+    }
+    &__input {
+      @apply w-full max-w-none;
+    }
+  }
+}
+</style>
