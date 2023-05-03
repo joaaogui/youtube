@@ -11,6 +11,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.0.0",
     "axios": "^0.27.2",
     "chart.js": "^3.8.0",
     "dayjs": "^1.11.3",
@@ -24,6 +25,5 @@
     "sass": "^1.58.3",
     "tailwindcss": "",
     "vite": "^4.3.0"
-  
   }
 }
