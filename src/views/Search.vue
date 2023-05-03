@@ -25,7 +25,6 @@ const headers = [
   { text: "Visualizações", value: "views", sortable: true },
   { text: "Likes", value: "likes", sortable: true },
   { text: "Comentários", value: "comments", sortable: true },
-  { text: "Favoritos", value: "favorites", sortable: true },
 ];
 const videoPrefix = "https://www.youtube.com/watch?v=";
 const channelPrefix = "https://www.youtube.com/channel/";
@@ -94,7 +93,6 @@ async function setVideoArray() {
     const views = await getVideoInfo(videoContent.videoId, "viewCount");
     const likes = await getVideoInfo(videoContent.videoId, "likeCount");
     const comments = await getVideoInfo(videoContent.videoId, "commentCount");
-    const favorites = await getVideoInfo(videoContent.videoId, "favoriteCount");
     const days = getDaysToToday(videoContent.videoPublishedAt);
     const score = getScore(views, days, comments, likes);
     const title = video.snippet.title;
@@ -108,7 +106,6 @@ async function setVideoArray() {
       views,
       likes,
       comments,
-      favorites,
       score,
       url,
       thumbnail,
@@ -130,7 +127,7 @@ async function searchChannel(name) {
   videos.value = [];
   allPlaylistVideos = [];
   inputSearched.value = name;
-  await setChannelInfo(`UC1xXdgoZjZpD-Uql3Dl5yfQ`);
+  await setChannelInfo(name);
   const storage = localStorage.getItem(channelInfo.value.channelId);
   if (storage) videos.value = JSON.parse(storage);
   else await setVideoArray();
