@@ -10,6 +10,6 @@ import Search from "./views/Search.vue";
 
 <style scoped>
 .app {
-  @apply h-screen w-screen ;
+  @apply h-screen w-screen;
 }
 </style>

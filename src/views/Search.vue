@@ -190,9 +190,9 @@ async function searchChannel(name) {
 
 <style lang="scss" scoped>
 .search {
-  @apply flex h-full w-full flex-col items-center justify-start p-4;
+  @apply flex h-full w-full flex-col items-center justify-center p-4;
   &__header {
-    @apply flex w-full flex-col;
+    @apply flex w-full flex-col justify-center items-center;
     &__logo {
       @apply mb-6 w-full max-w-md justify-center;
     }
