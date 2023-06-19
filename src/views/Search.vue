@@ -87,7 +87,6 @@ async function setVideoArray() {
   const channelId = channelInfo.value.channelId;
   const channelVideos = await getChannelVideos(channelInfo.value.channelId);
   for (const video of channelVideos) {
-    console.log(video);
     const videoContent = video.contentDetails;
     const videoId = videoContent.videoId;
     const views = await getVideoInfo(videoContent.videoId, "viewCount");
@@ -168,8 +167,8 @@ async function searchChannel(name) {
         v-if="videos.length"
       >
         <template #item-title="{ url, title, thumbnail }">
-          <span class="flex">
-            <img :src="thumbnail" />
+          <span class="search__content__table__title">
+            <img class="search__content__table__title__img" :src="thumbnail" />
             <a :href="url" target="_blank">{{ title }}</a>
           </span></template
         >
@@ -201,9 +200,18 @@ async function searchChannel(name) {
     }
   }
   &__content {
-    @apply mb-6 mt-2;
+    @apply mb-6 mt-2 overflow-auto w-full;
+    max-height: 90%;
+    &__table {
+      &__title {
+        @apply flex p-2 gap-2;
+        &__img {
+          @apply hidden md:flex;
+        }
+      }
+    }
     &__title {
-      @apply flex;
+      @apply flex mb-2;
       &__img {
         @apply mr-2 rounded-lg;
       }
