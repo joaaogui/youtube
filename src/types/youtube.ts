@@ -12,16 +12,6 @@ export interface VideoData {
   description: string;
 }
 
-export interface ChannelInfo {
-  channelId: string;
-  channelTitle: string;
-  thumbnails: {
-    default: {
-      url: string;
-    };
-  };
-}
-
 export interface PlaylistItem {
   snippet: {
     title: string;
@@ -44,4 +34,3 @@ export interface VideoStatistics {
   commentCount: string;
   favoriteCount: string;
 }
-
