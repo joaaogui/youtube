@@ -19,24 +19,79 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { 
+  ArrowUpDown, 
+  ChevronLeft, 
+  ChevronRight, 
+  ExternalLink,
+  Eye,
+  Clock,
+  MessageSquare,
+  ThumbsUp,
+} from "lucide-react";
 import type { VideoData } from "@/types/youtube";
+import { getScoreLabel } from "@/lib/scoring";
 import Image from "next/image";
 
 const formatNumber = (num: number) => num.toLocaleString("pt-BR");
+
+function ScoreBadge({ score }: { score: number }) {
+  const { label, color } = getScoreLabel(score);
+  
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className={`text-lg font-bold tabular-nums ${color}`}>
+        {score.toFixed(1)}
+      </span>
+      <span className={`text-[10px] font-medium ${color}`}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function ScoreBreakdown({ video }: { video: VideoData }) {
+  const { scoreComponents } = video;
+  
+  // Handle old cached data without scoreComponents
+  if (!scoreComponents) {
+    return null;
+  }
+  
+  return (
+    <div className="flex gap-3 text-xs">
+      <div className="flex items-center gap-1" title="Engajamento (likes + comentários por view)">
+        <ThumbsUp className="h-3 w-3 text-blue-500" />
+        <span className="tabular-nums">{scoreComponents.engagementScore?.toFixed(0) ?? '-'}</span>
+      </div>
+      <div className="flex items-center gap-1" title="Alcance (total de views)">
+        <Eye className="h-3 w-3 text-green-500" />
+        <span className="tabular-nums">{scoreComponents.reachScore?.toFixed(0) ?? '-'}</span>
+      </div>
+      <div className="flex items-center gap-1" title="Consistência (engajamento sustentado)">
+        <Clock className="h-3 w-3 text-yellow-500" />
+        <span className="tabular-nums">{scoreComponents.consistencyScore?.toFixed(0) ?? '-'}</span>
+      </div>
+      <div className="flex items-center gap-1" title="Comunidade (proporção de comentários)">
+        <MessageSquare className="h-3 w-3 text-purple-500" />
+        <span className="tabular-nums">{scoreComponents.communityScore?.toFixed(0) ?? '-'}</span>
+      </div>
+    </div>
+  );
+}
 
 const columns: ColumnDef<VideoData>[] = [
   {
     accessorKey: "title",
     header: "Título",
     cell: ({ row }) => (
-      <div className="flex items-center gap-3 min-w-[300px]">
+      <div className="flex items-center gap-3 min-w-[280px]">
         <Image
           src={row.original.thumbnail}
           alt={row.original.title}
           width={80}
           height={45}
-          className="rounded object-cover"
+          className="rounded object-cover flex-shrink-0"
         />
         <a
           href={row.original.url}
@@ -45,8 +100,27 @@ const columns: ColumnDef<VideoData>[] = [
           className="hover:text-primary hover:underline line-clamp-2 flex items-center gap-1 text-sm"
         >
           {row.original.title}
-          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+          <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-50" />
         </a>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "score",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="h-8 px-2"
+      >
+        Score
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <div className="flex flex-col items-center gap-1">
+        <ScoreBadge score={row.original.score} />
+        <ScoreBreakdown video={row.original} />
       </div>
     ),
   },
@@ -58,29 +132,15 @@ const columns: ColumnDef<VideoData>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 px-2"
       >
-        Idade (dias)
+        Idade
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.days)}</span>,
-  },
-  {
-    accessorKey: "score",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="h-8 px-2"
-      >
-        Pontuação
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => (
-      <span className="tabular-nums font-medium text-primary">
-        {formatNumber(Math.round(row.original.score))}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const days = row.original.days;
+      const label = days === 0 ? "Hoje" : days === 1 ? "Ontem" : `${formatNumber(days)}d`;
+      return <span className="tabular-nums text-muted-foreground">{label}</span>;
+    },
   },
   {
     accessorKey: "views",
@@ -90,11 +150,18 @@ const columns: ColumnDef<VideoData>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 px-2"
       >
-        Visualizações
+        Views
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.views)}</span>,
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <span className="tabular-nums font-medium">{formatNumber(row.original.views)}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {row.original.rates ? `${formatNumber(row.original.rates.viewsPerDay)}/dia` : '-'}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "likes",
@@ -108,7 +175,14 @@ const columns: ColumnDef<VideoData>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.likes)}</span>,
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <span className="tabular-nums">{formatNumber(row.original.likes)}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {row.original.rates?.likeRate?.toFixed(1) ?? '-'}‰
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "comments",
@@ -122,21 +196,37 @@ const columns: ColumnDef<VideoData>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.comments)}</span>,
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <span className="tabular-nums">{formatNumber(row.original.comments)}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {row.original.rates?.commentRate?.toFixed(2) ?? '-'}‰
+        </span>
+      </div>
+    ),
   },
   {
-    accessorKey: "favorites",
+    id: "engagement",
+    accessorFn: (row) => row.rates.engagementRate,
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 px-2"
       >
-        Favoritos
+        Engajamento
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <span className="tabular-nums">{formatNumber(row.original.favorites)}</span>,
+    cell: ({ row }) => {
+      const rate = row.original.rates?.engagementRate ?? 0;
+      const color = rate >= 60 ? "text-emerald-500" : rate >= 40 ? "text-green-500" : rate >= 20 ? "text-yellow-500" : "text-muted-foreground";
+      return (
+        <span className={`tabular-nums font-medium ${color}`}>
+          {rate.toFixed(1)}‰
+        </span>
+      );
+    },
   },
 ];
 
@@ -166,8 +256,51 @@ export function VideosTable({ data }: VideosTableProps) {
     },
   });
 
+  // Calculate channel averages for context
+  const avgScore = data.length > 0 
+    ? data.reduce((sum, v) => sum + (v.score || 0), 0) / data.length 
+    : 0;
+  const avgEngagement = data.length > 0
+    ? data.reduce((sum, v) => sum + (v.rates?.engagementRate || 0), 0) / data.length
+    : 0;
+
   return (
     <div className="space-y-4">
+      {/* Channel Stats Summary */}
+      <div className="flex gap-4 text-sm">
+        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5">
+          <span className="text-muted-foreground">Score médio:</span>
+          <span className="font-semibold">{avgScore.toFixed(1)}</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5">
+          <span className="text-muted-foreground">Engajamento médio:</span>
+          <span className="font-semibold">{avgEngagement.toFixed(1)}‰</span>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <Eye className="h-3 w-3 text-green-500" />
+          <span className="font-medium">Views (50%)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <ThumbsUp className="h-3 w-3 text-blue-500" />
+          <span>Engajamento (25%)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Clock className="h-3 w-3 text-yellow-500" />
+          <span>Consistência (15%)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <MessageSquare className="h-3 w-3 text-purple-500" />
+          <span>Comunidade (10%)</span>
+        </div>
+        <div className="ml-auto text-muted-foreground">
+          ‰ = por 1.000 views
+        </div>
+      </div>
+
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
@@ -247,4 +380,3 @@ export function VideosTable({ data }: VideosTableProps) {
     </div>
   );
 }
-

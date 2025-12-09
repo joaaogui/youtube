@@ -1,6 +1,7 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import type { VideoData, PlaylistItem, VideoStatistics } from "@/types/youtube";
+import { calculateVideoScore } from "./scoring";
 
 const API_URL = "https://www.googleapis.com/youtube/v3";
 const API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || "AIzaSyBy5PsZmq3zn2jSdnrn1bGT9lsF-6NwVx4";
@@ -86,10 +87,6 @@ async function getBatchVideoStatistics(videoIds: string[]): Promise<Map<string, 
 
 function getDaysToToday(videoDate: string): number {
   return dayjs().diff(videoDate, "day");
-}
-
-function getScore(views: number, days: number, comments: number, likes: number): number {
-  return Number((views * 4) / ((days + 1) * 5) + comments * 2 + likes * 3);
 }
 
 /**
@@ -180,7 +177,9 @@ export async function fetchChannelVideos(
       const comments = Number(stats.commentCount || 0);
       const favorites = Number(stats.favoriteCount || 0);
       const days = getDaysToToday(item.contentDetails.videoPublishedAt);
-      const score = getScore(views, days, comments, likes);
+      
+      // Calculate comprehensive score using statistical model
+      const scoring = calculateVideoScore({ views, likes, comments, days });
       
       videos.push({
         videoId,
@@ -190,7 +189,9 @@ export async function fetchChannelVideos(
         likes,
         comments,
         favorites,
-        score,
+        score: scoring.score,
+        scoreComponents: scoring.components,
+        rates: scoring.rates,
         url: VIDEO_PREFIX + videoId,
         thumbnail: item.snippet.thumbnails.default.url,
         description: item.snippet.description,

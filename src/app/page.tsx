@@ -7,14 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VideosTable } from "@/components/videos-table";
-import { searchChannel, fetchChannelVideos, CHANNEL_PREFIX, type ChannelInfo } from "@/lib/youtube";
-import { Search, Youtube, Loader2, ExternalLink } from "lucide-react";
+import { searchChannel, fetchChannelVideos, CHANNEL_PREFIX, clearCache, type ChannelInfo } from "@/lib/youtube";
+import { Search, Youtube, Loader2, ExternalLink, RefreshCw } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [channelToSearch, setChannelToSearch] = useState<string | null>(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const queryClient = useQueryClient();
 
   const {
     data: channelInfo,
@@ -56,6 +58,14 @@ export default function HomePage() {
 
   const isLoading = isLoadingChannel || isLoadingVideos || isFetchingVideos;
   const hasVideos = videos && videos.length > 0;
+
+  const handleRefresh = useCallback(() => {
+    if (channelInfo?.channelId) {
+      clearCache(channelInfo.channelId);
+      queryClient.invalidateQueries({ queryKey: ["videos", channelInfo.channelId] });
+      setProgress({ current: 0, total: 0 });
+    }
+  }, [channelInfo?.channelId, queryClient]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
@@ -162,31 +172,43 @@ export default function HomePage() {
         {channelInfo && !isLoading && (
           <Card className="mb-6 overflow-hidden">
             <CardContent className="p-6">
-              <a
-                href={`${CHANNEL_PREFIX}${channelInfo.channelId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-4 group"
-              >
-                <Image
-                  src={channelInfo.thumbnails.default.url}
-                  alt={channelInfo.channelTitle}
-                  width={64}
-                  height={64}
-                  className="rounded-full ring-2 ring-border group-hover:ring-primary transition-all"
-                />
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold group-hover:text-primary transition-colors flex items-center gap-2">
-                    {channelInfo.channelTitle}
-                    <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </h2>
-                  {videos && (
-                    <p className="text-muted-foreground">
-                      {videos.length} vídeos encontrados
-                    </p>
-                  )}
-                </div>
-              </a>
+              <div className="flex items-center gap-4">
+                <a
+                  href={`${CHANNEL_PREFIX}${channelInfo.channelId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 group flex-1"
+                >
+                  <Image
+                    src={channelInfo.thumbnails.default.url}
+                    alt={channelInfo.channelTitle}
+                    width={64}
+                    height={64}
+                    className="rounded-full ring-2 ring-border group-hover:ring-primary transition-all"
+                  />
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold group-hover:text-primary transition-colors flex items-center gap-2">
+                      {channelInfo.channelTitle}
+                      <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </h2>
+                    {videos && (
+                      <p className="text-muted-foreground">
+                        {videos.length} vídeos encontrados
+                      </p>
+                    )}
+                  </div>
+                </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  title="Atualizar dados (limpar cache)"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Atualizar
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
