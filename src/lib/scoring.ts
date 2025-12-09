@@ -72,16 +72,6 @@ const CONFIG = {
 };
 
 /**
- * Logarithmic scaling for large numbers
- * Maps any positive number to a reasonable range
- */
-function logScale(value: number, reference: number): number {
-  if (value <= 0) return 0;
-  // log10(value) / log10(reference) gives 1.0 at reference point
-  return Math.log10(value + 1) / Math.log10(reference);
-}
-
-/**
  * Sigmoid normalization to map any value to 0-100 scale
  * Provides smooth, bounded scaling that handles outliers well
  */

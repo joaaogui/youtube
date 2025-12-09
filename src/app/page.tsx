@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VideosTable } from "@/components/videos-table";
-import { searchChannel, fetchChannelVideos, CHANNEL_PREFIX, clearCache, type ChannelInfo } from "@/lib/youtube";
+import { searchChannel, fetchChannelVideos, CHANNEL_PREFIX, clearCache } from "@/lib/youtube";
 import { Search, Youtube, Loader2, ExternalLink, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
