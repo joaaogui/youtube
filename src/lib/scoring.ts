@@ -251,35 +251,35 @@ export function getScoreLabel(score: number): {
 } {
   if (score >= 70) {
     return {
-      label: "Excelente",
+      label: "Excellent",
       color: "text-emerald-500",
-      description: "Performance excepcional - alto engajamento e alcance",
+      description: "Exceptional performance - high engagement and reach",
     };
   }
   if (score >= 55) {
     return {
-      label: "Muito Bom",
+      label: "Very Good",
       color: "text-green-500",
-      description: "Acima da média - bom engajamento do público",
+      description: "Above average - good audience engagement",
     };
   }
   if (score >= 40) {
     return {
-      label: "Bom",
+      label: "Good",
       color: "text-yellow-500",
-      description: "Performance adequada - dentro do esperado",
+      description: "Adequate performance - within expectations",
     };
   }
   if (score >= 25) {
     return {
-      label: "Regular",
+      label: "Fair",
       color: "text-orange-500",
-      description: "Abaixo da média - pode melhorar engajamento",
+      description: "Below average - engagement could improve",
     };
   }
   return {
-    label: "Baixo",
+    label: "Low",
     color: "text-red-500",
-    description: "Precisa de atenção - baixo engajamento",
+    description: "Needs attention - low engagement",
   };
 }

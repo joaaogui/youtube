@@ -38,8 +38,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 Create a `.env.local` file based on `.env.example`:
 
 ```bash
-# YouTube API Key
-NEXT_PUBLIC_YOUTUBE_API_KEY=your_youtube_api_key_here
+# YouTube API Key (server-side only - not exposed to client)
+YOUTUBE_API_KEY=your_youtube_api_key_here
 ```
 
 ## Features

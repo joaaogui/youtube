@@ -83,7 +83,7 @@ export default function HomePage() {
                   YouTube Analyzer
                 </h1>
                 <p className="text-muted-foreground text-center">
-                  Analise estatísticas de canais e vídeos do YouTube
+                  Analyze channel statistics and video performance
                 </p>
               </div>
             )}
@@ -109,7 +109,7 @@ export default function HomePage() {
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Buscar"
+                "Search"
               )}
             </Button>
           </div>
@@ -120,7 +120,7 @@ export default function HomePage() {
           <Card className="border-destructive/50 bg-destructive/10">
             <CardContent className="p-4">
               <p className="text-destructive text-center">
-                Erro ao buscar canal. Verifique o nome e tente novamente.
+                Error searching for channel. Please check the name and try again.
               </p>
             </CardContent>
           </Card>
@@ -146,7 +146,7 @@ export default function HomePage() {
                 <CardContent className="p-6">
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Carregando vídeos...</span>
+                      <span className="text-muted-foreground">Loading videos...</span>
                       <span className="font-medium">{progress.current} / {progress.total}</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -193,7 +193,7 @@ export default function HomePage() {
                     </h2>
                     {videos && (
                       <p className="text-muted-foreground">
-                        {videos.length} vídeos encontrados
+                        {videos.length} videos found
                       </p>
                     )}
                   </div>
@@ -203,10 +203,10 @@ export default function HomePage() {
                   size="sm"
                   onClick={handleRefresh}
                   disabled={isLoading}
-                  title="Atualizar dados (limpar cache)"
+                  title="Refresh data (clear cache)"
                 >
                   <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  Atualizar
+                  Refresh
                 </Button>
               </div>
             </CardContent>
