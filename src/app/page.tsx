@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Youtube } from "lucide-react";
+import { Youtube, Info } from "lucide-react";
 import { SearchChannel } from "@/components/search-channel";
 
 const SUGGESTIONS = ["MrBeast", "Veritasium", "Marques Brownlee"];
@@ -45,6 +45,14 @@ export default function HomePage() {
                   {index < SUGGESTIONS.length - 1 && (index === SUGGESTIONS.length - 2 ? ", or " : ", ")}
                 </span>
               ))}
+            </p>
+          </div>
+
+          {/* API Quota Notice */}
+          <div className="flex items-start gap-2 text-xs text-muted-foreground/70 bg-muted/30 rounded-lg p-3 text-left">
+            <Info className="h-4 w-4 shrink-0 mt-0.5" />
+            <p>
+              This app uses the YouTube Data API with limited daily quota. Results are cached locally for 30 days to minimize API usage.
             </p>
           </div>
         </div>

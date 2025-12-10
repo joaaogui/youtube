@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,8 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { VideosTable } from "@/components/videos-table";
 import { SearchChannel } from "@/components/search-channel";
-import { searchChannel, fetchChannelVideos, CHANNEL_PREFIX, clearCache } from "@/lib/youtube";
-import { Youtube, ExternalLink, RefreshCw, AlertCircle, ArrowLeft } from "lucide-react";
+import { searchChannel, fetchChannelVideos, CHANNEL_PREFIX, clearCache, getCacheAge } from "@/lib/youtube";
+import { Youtube, ExternalLink, RefreshCw, AlertCircle, ArrowLeft, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -17,6 +17,7 @@ export default function ChannelPage() {
   const params = useParams();
   const channelName = decodeURIComponent(params.name as string);
   const queryClient = useQueryClient();
+  const [cacheAge, setCacheAge] = useState<number | null>(null);
 
   const {
     data: channelInfo,
@@ -41,9 +42,17 @@ export default function ChannelPage() {
     staleTime: Infinity,
   });
 
+  // Update cache age when videos are loaded
+  useEffect(() => {
+    if (channelInfo?.channelId && videos) {
+      setCacheAge(getCacheAge(channelInfo.channelId));
+    }
+  }, [channelInfo?.channelId, videos]);
+
   const handleRefresh = useCallback(() => {
     if (channelInfo?.channelId) {
       clearCache(channelInfo.channelId);
+      setCacheAge(null);
       queryClient.invalidateQueries({ queryKey: ["videos", channelInfo.channelId] });
     }
   }, [channelInfo?.channelId, queryClient]);
@@ -142,9 +151,15 @@ export default function ChannelPage() {
                       <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </h2>
                     {videos ? (
-                      <p className="text-muted-foreground">
-                        {videos.length} videos found
-                      </p>
+                      <div className="flex items-center gap-3 text-muted-foreground">
+                        <span>{videos.length} videos found</span>
+                        {cacheAge !== null && cacheAge > 0 && (
+                          <span className="flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
+                            <Clock className="h-3 w-3" />
+                            Cached {cacheAge} {cacheAge === 1 ? "day" : "days"} ago
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <p className="text-muted-foreground">Loading videos...</p>
                     )}
