@@ -11,6 +11,7 @@ import { searchChannel, fetchChannelVideos, CHANNEL_PREFIX, clearCache } from "@
 import { Search, Youtube, Loader2, ExternalLink, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,30 +68,106 @@ export default function HomePage() {
     }
   }, [channelInfo?.channelId, queryClient]);
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
-      <div className={`mx-auto transition-all duration-500 ${hasVideos ? "max-w-full px-4 py-4" : "max-w-2xl px-4 py-20"}`}>
-        {/* Header Section */}
-        <div className={`flex transition-all duration-500 ${hasVideos ? "flex-row items-center gap-4 mb-6" : "flex-col items-center gap-8"}`}>
-          {/* Logo */}
-          <div className={`transition-all duration-500 ${hasVideos ? "w-12 flex-shrink-0" : "w-full max-w-md"}`}>
-            {hasVideos ? (
-              <Youtube className="h-10 w-10 text-primary" />
-            ) : (
-              <div className="flex flex-col items-center gap-4">
-                <Youtube className="h-24 w-24 text-primary animate-pulse" />
-                <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-red-500 to-orange-500 bg-clip-text text-transparent">
-                  YouTube Analyzer
-                </h1>
-                <p className="text-muted-foreground text-center">
-                  Analyze channel statistics and video performance
-                </p>
+  // Render the initial search page (no videos yet)
+  if (!hasVideos && !isLoading && !channelError) {
+    return (
+      <main className="min-h-screen flex flex-col">
+        {/* Centered content */}
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-xl space-y-8 text-center">
+            {/* Logo */}
+            <div className="flex justify-center">
+              <Youtube className="h-32 w-32 text-primary" />
+            </div>
+
+            {/* Tagline */}
+            <div className="space-y-2">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                <span className="bg-gradient-to-r from-primary via-red-500 to-orange-500 bg-clip-text text-transparent">YouTube Analyzer</span>
+              </h1>
+              <p className="text-muted-foreground">
+                Analyze channel statistics and video performance
+              </p>
+            </div>
+
+            {/* Search */}
+            <div className="flex justify-center">
+              <div className="flex gap-2 w-full">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search for a YouTube channel..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="pl-10 h-12 text-base"
+                  />
+                </div>
+                <Button
+                  onClick={handleSearch}
+                  disabled={!searchQuery.trim()}
+                  className="h-12 px-6"
+                >
+                  Search
+                </Button>
               </div>
-            )}
+            </div>
+
+            {/* Hints */}
+            <div className="text-sm text-muted-foreground">
+              <p>
+                Try searching for{" "}
+                {["MrBeast", "Veritasium", "Marques Brownlee"].map((suggestion, index, arr) => (
+                  <span key={suggestion}>
+                    <button
+                      onClick={() => {
+                        setSearchQuery(suggestion);
+                        setChannelToSearch(suggestion);
+                      }}
+                      className="text-foreground font-medium hover:text-primary transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                    {index < arr.length - 1 && (index === arr.length - 2 ? ", or " : ", ")}
+                  </span>
+                ))}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="py-4 text-center text-sm text-muted-foreground border-t border-border/50">
+          <p>
+            Powered by{" "}
+            <a
+              href="https://developers.google.com/youtube/v3"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              YouTube Data API
+            </a>
+          </p>
+        </footer>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen flex flex-col">
+      <div className="max-w-full px-4 py-4 w-full mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-row items-center gap-4 mb-6">
+          {/* Logo */}
+          <div className="w-12 flex-shrink-0">
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+              <Youtube className="h-10 w-10 text-primary" />
+            </Link>
           </div>
 
           {/* Search Input */}
-          <div className={`flex gap-2 transition-all duration-500 ${hasVideos ? "flex-1" : "w-full"}`}>
+          <div className="flex gap-2 flex-1">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input

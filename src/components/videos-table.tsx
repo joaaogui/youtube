@@ -33,7 +33,7 @@ import type { VideoData } from "@/types/youtube";
 import { getScoreLabel } from "@/lib/scoring";
 import Image from "next/image";
 
-const formatNumber = (num: number) => num.toLocaleString("pt-BR");
+const formatNumber = (num: number) => num.toLocaleString("en-US");
 
 function ScoreBadge({ score }: { score: number }) {
   const { label, color } = getScoreLabel(score);
@@ -60,19 +60,19 @@ function ScoreBreakdown({ video }: { video: VideoData }) {
   
   return (
     <div className="flex gap-3 text-xs">
-      <div className="flex items-center gap-1" title="Engajamento (likes + comentários por view)">
+      <div className="flex items-center gap-1" title="Engagement (likes + comments per view)">
         <ThumbsUp className="h-3 w-3 text-blue-500" />
         <span className="tabular-nums">{scoreComponents.engagementScore?.toFixed(0) ?? '-'}</span>
       </div>
-      <div className="flex items-center gap-1" title="Alcance (total de views)">
+      <div className="flex items-center gap-1" title="Reach (total views)">
         <Eye className="h-3 w-3 text-green-500" />
         <span className="tabular-nums">{scoreComponents.reachScore?.toFixed(0) ?? '-'}</span>
       </div>
-      <div className="flex items-center gap-1" title="Consistência (engajamento sustentado)">
+      <div className="flex items-center gap-1" title="Consistency (sustained engagement)">
         <Clock className="h-3 w-3 text-yellow-500" />
         <span className="tabular-nums">{scoreComponents.consistencyScore?.toFixed(0) ?? '-'}</span>
       </div>
-      <div className="flex items-center gap-1" title="Comunidade (proporção de comentários)">
+      <div className="flex items-center gap-1" title="Community (comment ratio)">
         <MessageSquare className="h-3 w-3 text-purple-500" />
         <span className="tabular-nums">{scoreComponents.communityScore?.toFixed(0) ?? '-'}</span>
       </div>
@@ -83,7 +83,7 @@ function ScoreBreakdown({ video }: { video: VideoData }) {
 const columns: ColumnDef<VideoData>[] = [
   {
     accessorKey: "title",
-    header: "Título",
+    header: "Title",
     cell: ({ row }) => (
       <div className="flex items-center gap-3 min-w-[280px]">
         <Image
@@ -132,13 +132,13 @@ const columns: ColumnDef<VideoData>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 px-2"
       >
-        Idade
+        Age
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
       const days = row.original.days;
-      const label = days === 0 ? "Hoje" : days === 1 ? "Ontem" : `${formatNumber(days)}d`;
+      const label = days === 0 ? "Today" : days === 1 ? "Yesterday" : `${formatNumber(days)}d`;
       return <span className="tabular-nums text-muted-foreground">{label}</span>;
     },
   },
@@ -158,7 +158,7 @@ const columns: ColumnDef<VideoData>[] = [
       <div className="flex flex-col">
         <span className="tabular-nums font-medium">{formatNumber(row.original.views)}</span>
         <span className="text-xs text-muted-foreground tabular-nums">
-          {row.original.rates ? `${formatNumber(row.original.rates.viewsPerDay)}/dia` : '-'}
+          {row.original.rates ? `${formatNumber(row.original.rates.viewsPerDay)}/day` : '-'}
         </span>
       </div>
     ),
@@ -192,7 +192,7 @@ const columns: ColumnDef<VideoData>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 px-2"
       >
-        Comentários
+        Comments
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -214,7 +214,7 @@ const columns: ColumnDef<VideoData>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 px-2"
       >
-        Engajamento
+        Engagement
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -269,11 +269,11 @@ export function VideosTable({ data }: VideosTableProps) {
       {/* Channel Stats Summary */}
       <div className="flex gap-4 text-sm">
         <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5">
-          <span className="text-muted-foreground">Score médio:</span>
+          <span className="text-muted-foreground">Average score:</span>
           <span className="font-semibold">{avgScore.toFixed(1)}</span>
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5">
-          <span className="text-muted-foreground">Engajamento médio:</span>
+          <span className="text-muted-foreground">Average engagement:</span>
           <span className="font-semibold">{avgEngagement.toFixed(1)}‰</span>
         </div>
       </div>
@@ -286,18 +286,18 @@ export function VideosTable({ data }: VideosTableProps) {
         </div>
         <div className="flex items-center gap-1">
           <ThumbsUp className="h-3 w-3 text-blue-500" />
-          <span>Engajamento (25%)</span>
+          <span>Engagement (25%)</span>
         </div>
         <div className="flex items-center gap-1">
           <Clock className="h-3 w-3 text-yellow-500" />
-          <span>Consistência (15%)</span>
+          <span>Consistency (15%)</span>
         </div>
         <div className="flex items-center gap-1">
           <MessageSquare className="h-3 w-3 text-purple-500" />
-          <span>Comunidade (10%)</span>
+          <span>Community (10%)</span>
         </div>
         <div className="ml-auto text-muted-foreground">
-          ‰ = por 1.000 views
+          ‰ = per 1,000 views
         </div>
       </div>
 
@@ -339,7 +339,7 @@ export function VideosTable({ data }: VideosTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Nenhum vídeo encontrado.
+                  No videos found.
                 </TableCell>
               </TableRow>
             )}
@@ -349,12 +349,12 @@ export function VideosTable({ data }: VideosTableProps) {
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Mostrando {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} a{" "}
+          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
           {Math.min(
             (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
             data.length
           )}{" "}
-          de {data.length} vídeos
+          of {data.length} videos
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -364,7 +364,7 @@ export function VideosTable({ data }: VideosTableProps) {
             disabled={!table.getCanPreviousPage()}
           >
             <ChevronLeft className="h-4 w-4" />
-            Anterior
+            Previous
           </Button>
           <Button
             variant="outline"
@@ -372,7 +372,7 @@ export function VideosTable({ data }: VideosTableProps) {
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Próximo
+            Next
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

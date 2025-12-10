@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} font-sans antialiased`}>
+      <body className={`${outfit.variable} font-sans antialiased gradient-bg min-h-screen`}>
         <Providers>
           <div className="fixed right-4 top-4 z-50">
             <ThemeToggle />
