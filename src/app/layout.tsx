@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "YouTube Analyzer",
   description: "Analyze YouTube channel statistics and video performance",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.svg",
   },
 };
 
