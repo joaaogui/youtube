@@ -2,7 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { HotjarProvider } from "./hotjar-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -25,7 +26,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <Suspense fallback={null}>
+          <HotjarProvider>{children}</HotjarProvider>
+        </Suspense>
       </ThemeProvider>
     </QueryClientProvider>
   );
